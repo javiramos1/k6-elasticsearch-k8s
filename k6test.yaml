@@ -1,0 +1,20 @@
+apiVersion: k6.io/v1alpha1
+kind: K6
+metadata:
+  name: k6-es-perf-test
+spec:
+  parallelism: 2
+  script:
+    configMap:
+      name: es-perf-test
+      file: run.js
+  runner:
+    env:
+      - name: ES_USERNAME
+        value: "elastic"
+      - name: ES_PASSWORD
+        value: "password"
+      - name: INDEX
+        value: "test"
+      - name: URL
+        value: "localhost:9200"

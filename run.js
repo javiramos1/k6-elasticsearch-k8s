@@ -1,4 +1,3 @@
-import encoding from 'k6/encoding';
 import http from 'k6/http';
 import { check } from 'k6';
 import { Rate } from 'k6/metrics';
@@ -8,7 +7,7 @@ const password = __ENV.ES_PASSWORD || 'password';
 const index = __ENV.INDEX || 'test';
 const url = __ENV.URL || 'localhost:9200' ;
 
-console.log("index", index)
+console.log("index", index, "user", username, "url", url)
 
 const params = {
     headers: {
@@ -17,8 +16,9 @@ const params = {
 };
 
 export let options = {
-    vus: 500,
-    duration: '30s'
+    vus: 200,
+    duration: '30s',
+    insecureSkipTLSVerify: true,
 };
 
 
@@ -27,20 +27,16 @@ export const errorRate = new Rate('errors');
 export default function () {
   const credentials = `${username}:${password}`;
 
-  // Passing username and password as part of the URL will
-  // allow us to authenticate using HTTP Basic Auth.
-  const reqUel = `http://${credentials}@${url}/${index}/_search`;
+  const reqUel = `https://${credentials}@${url}/${index}/_search`;
 
   console.log("Starting Load Test. URL: ", reqUel)
 
   const p1 = JSON.stringify(
     {
-        "query": {
-            "query_string": {
-                "query": `name:test`
-            }
-        }
-    } 
+      "query": {
+             "match_all": {}
+         }
+     }
   );
 
   let res = http.post(reqUel, p1, params);
@@ -53,7 +49,7 @@ export default function () {
     {
         "query": {
             "query_string": {
-                "query": "is_valid:true"
+                "query": "OriginCityName:Frankfurt*"
             }
         }
     }    
@@ -69,7 +65,7 @@ export default function () {
     {
         "query": {
             "query_string": {
-                "query": "true"
+                "query": "Rain"
             }
         }
     }       
@@ -99,12 +95,12 @@ export default function () {
 
   const p5 = JSON.stringify(
     {
-        "query": {
-            "query_string": {
-                "query": "type_1"
-            }
-        }
-    }   
+      "query": {
+          "query_string": {
+              "query": "OriginCountry:DE"
+          }
+      }
+  }   
   );
 
   res = http.post(reqUel, p5, params);

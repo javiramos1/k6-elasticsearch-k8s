@@ -13,8 +13,8 @@ spec:
       - name: ES_USERNAME
         value: "elastic"
       - name: ES_PASSWORD
-        value: "password"
+        value: "71GSm51vV7EC3E4Lk3p85zhY"
       - name: INDEX
-        value: "test"
+        value: "kibana_sample_data_flights"
       - name: URL
-        value: "localhost:9200"
+        value: "quickstart-es-http:9200"

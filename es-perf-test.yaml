@@ -1,0 +1,37 @@
+apiVersion: v1
+data:
+  run.js: "import http from 'k6/http';\nimport { check } from 'k6';\nimport { Rate
+    } from 'k6/metrics';\n\nconst username = __ENV.ES_USERNAME || 'elastic';\nconst
+    password = __ENV.ES_PASSWORD || 'password';\nconst index = __ENV.INDEX || 'test';\nconst
+    url = __ENV.URL || 'localhost:9200' ;\n\nconsole.log(\"index\", index, \"user\",
+    username, \"url\", url)\n\nconst params = {\n    headers: {\n      'Content-Type':
+    'application/json',\n    },\n};\n\nexport let options = {\n    vus: 200,\n    duration:
+    '30s',\n    insecureSkipTLSVerify: true,\n};\n\n\nexport const errorRate = new
+    Rate('errors');\n\nexport default function () {\n  const credentials = `${username}:${password}`;\n\n
+    \ const reqUel = `https://${credentials}@${url}/${index}/_search`;\n\n  console.log(\"Starting
+    Load Test. URL: \", reqUel)\n\n  const p1 = JSON.stringify(\n    {\n      \"query\":
+    {\n             \"match_all\": {}\n         }\n     }\n  );\n\n  let res = http.post(reqUel,
+    p1, params);\n    \n  check(res, {\n    'Q1 status is 200': (r) => r.status ===
+    200\n  }) || errorRate.add(1);\n\n  const p2 = JSON.stringify(\n    {\n        \"query\":
+    {\n            \"query_string\": {\n                \"query\": \"OriginCityName:Frankfurt*\"\n
+    \           }\n        }\n    }    \n  );\n\n  res = http.post(reqUel, p2, params);\n
+    \   \n  check(res, {\n    'Q2 status is 200': (r) => r.status === 200\n  }) ||
+    errorRate.add(1);\n\n  const p3 = JSON.stringify(\n    {\n        \"query\": {\n
+    \           \"query_string\": {\n                \"query\": \"Rain\"\n            }\n
+    \       }\n    }       \n  );\n\n  res = http.post(reqUel, p3, params);\n    \n
+    \ check(res, {\n    'Q3 status is 200': (r) => r.status === 200\n  }) || errorRate.add(1);\n\n
+    \ const p4 = JSON.stringify(\n    {\n        \"query\": {\n            \"query_string\":
+    {\n                \"query\": \"test\"\n            }\n        }\n    }     \n
+    \ );\n\n  res = http.post(reqUel, p4, params);\n    \n  check(res, {\n    'Q4
+    status is 200': (r) => r.status === 200\n  }) || errorRate.add(1);\n\n  const
+    p5 = JSON.stringify(\n    {\n      \"query\": {\n          \"query_string\": {\n
+    \             \"query\": \"OriginCountry:DE\"\n          }\n      }\n  }   \n
+    \ );\n\n  res = http.post(reqUel, p5, params);\n    \n  check(res, {\n    'Q5
+    status is 200': (r) => r.status === 200\n  }) || errorRate.add(1);\n\n\n\n  console.log(\"Completed!\")\n}"
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2023-01-06T17:48:44Z"
+  name: es-perf-test
+  namespace: test
+  resourceVersion: "1170168"
+  uid: f3bcb77c-b2ed-4f60-849c-821484a63de9
